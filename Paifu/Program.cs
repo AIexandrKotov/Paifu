@@ -18,6 +18,7 @@ namespace Paifu
             Console.Init(80, 32);
             Console.Theme = Theme.Dark;
             Console.Title = "Paifu";
+            Console.UpdatesPerSecond = 60;
             new PaifuViewer().Start();
         }
     }

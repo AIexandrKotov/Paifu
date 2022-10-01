@@ -50,8 +50,11 @@ namespace Paifu
             Current = new Paifu();
 
             Add(SpaceAction);
-            AddRedrawer(() => true, RedrawEyes);
+            Add(() => true, CheckForEyesAnimation);
+            AddRedrawer(RedrawHairs);
+            AddRedrawer(RedrawEyes);
             AddRedrawer(RedrawSkin);
+            AddRedrawer(RedrawMouth);
             OnAllRedraw += AllRedraw;
             OnKeyPress += KeyPress;
         }
@@ -70,13 +73,16 @@ namespace Paifu
             DrawImage("hairs.png");
         }
 
+        private bool lovely_last;
         public void RedrawSkin()
         {
+            if (lovely_last != Current.IsLovely) Reactions["RedrawEyes"] = true;
+            lovely_last = Current.IsLovely;
             DrawImage(Current.IsLovely ? "skin_lovely.png" : "skin_usualy.png");
         }
 
         public bool in_eyes = false;
-        public string[] shots = new string[] { "eyes.png", "eyes_2.png", "eyes_3.png", "eyes_2.png", "eyes_3.png" };
+        public string[] shots = new string[] { "eyes.png", "eyes_2.png", "eyes_3.png", "eyes_2.png", "eyes.png" };
         public int shot = 0;
 
         public TimeSpan lastEyesAnimation;
@@ -88,7 +94,17 @@ namespace Paifu
             {
                 RedrawSkin();
                 RedrawMouth();
-                DrawImage(shots[shot++]);
+                DrawImage(shots[shot - 1]);
+            }
+            else DrawImage("eyes.png");
+        }
+
+        public void CheckForEyesAnimation()
+        {
+            if (!in_eyes && lastEyesAnimation < BlockTimer && lastShot < BlockTimer) in_eyes = true;
+            if (in_eyes)
+            {
+                Reactions["RedrawEyes"] = true;
                 if (shot >= shots.Length)
                 {
                     in_eyes = false;
@@ -98,9 +114,9 @@ namespace Paifu
                         : new TimeSpan(Rng.Next(1500, 2500) * TimeSpan.TicksPerMillisecond)
                         );
                 }
+                else shot++;
                 lastShot = BlockTimer.Add(new TimeSpan(0, 0, 0, 0, 500));
             }
-            else DrawImage("eyes.png");
         }
 
         public void RedrawMouth()
